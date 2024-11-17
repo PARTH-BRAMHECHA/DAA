@@ -1,104 +1,75 @@
-/*
- Name:Parth Anand Bramhecha
- Class:Te-09  Batch:L-9
- Roll number:33115
- Date:7/8/24
-*/
-
-#include <iostream>
+ #include <iostream>
 #include <climits> // For INT_MAX
+
 using namespace std;
 
-// Struct for edge of graph
-struct Edge {
-int u; // Start vertex
-int v; // End vertex
-int w; // Weight of edge (u, v)
-};
+// Global variables
+int n, m, src;
+int edges[100][3]; // Assuming a maximum of 100 edges
+int dist[100];     // Assuming a maximum of 100 vertices
 
-// Graph structure
-struct Graph {
-struct Edge* edge; // Array of edges
-};
+// Function to implement the Bellman-Ford algorithm
+void bellmanFord() {
+    // Step 1: Initialize distances from source to all other vertices as infinite
+    for (int i = 1; i <= n; i++) {
+        dist[i] = INT_MAX;
+    }
+    dist[src] = 0; // Distance from source to itself is 0
 
-// Function to print the distance array
-void printArr(int arr[], int size) {
-for (int i = 0; i < size; i++) {
-cout << arr[i] << " ";
-}
-cout << endl;
-}
+    // Step 2: Relax all edges n-1 times
+    for (int i = 1; i <= n - 1; i++) {
+        for (int j = 0; j < m; j++) {
+            int u = edges[j][0]; // Source vertex
+            int v = edges[j][1]; // Destination vertex
+            int wt = edges[j][2]; // Weight of the edge
 
-// Function to read edge data from user
-void readEdges(struct Graph* graph, int E) {
-cout << "Enter the edges in the format u v w (where u is start vertex, v is end vertex, and w is weight):" << endl;
-for (int i = 0; i < E; i++) {
-cout << "Edge " << i + 1 << ": ";
-cin >> graph->edge[i].u >> graph->edge[i].v >> graph->edge[i].w;
-}
-}
+            // Relaxation step
+            if (dist[u] != INT_MAX && dist[u] + wt < dist[v]) {
+                dist[v] = dist[u] + wt;
+            }
+        }
+    }
 
-// Bellman-Ford algorithm implementation
-void BellmanFord(struct Graph* graph, int src, int V, int E) {
-int dist[V]; // Distance array
+    // Step 3: Check for negative-weight cycles
+    bool hasNegativeCycle = false;
+    for (int j = 0; j < m; j++) {
+        int u = edges[j][0];
+        int v = edges[j][1];
+        int wt = edges[j][2];
+        if (dist[u] != INT_MAX && dist[u] + wt < dist[v]) {
+            hasNegativeCycle = true;
+            break;
+        }
+    }
 
-// Initialize distances from source to all vertices as INFINITE
-for (int i = 0; i < V; i++) {
-dist[i] = INT_MAX;
-}
-dist[src] = 0;
-
-// Relax all edges |V| - 1 times
-for (int i = 1; i <= V - 1; i++) {
-for (int j = 0; j < E; j++) {
-int u = graph->edge[j].u;
-int v = graph->edge[j].v;
-int w = graph->edge[j].w;
-if (dist[u] != INT_MAX && dist[u] + w < dist[v]) {
-dist[v] = dist[u] + w;
-}
-}
-}
-
-// Check for negative-weight cycles
-for (int i = 0; i < E; i++) {
-int u = graph->edge[i].u;
-int v = graph->edge[i].v;
-int w = graph->edge[i].w;
-if (dist[u] != INT_MAX && dist[u] + w < dist[v]) {
-cout << "Graph contains negative weight cycle" << endl;
-return;
-}
-}
-
-// Print the distance array
-printArr(dist, V);
+    // Print all distances from the source vertex
+    if (!hasNegativeCycle) {
+        cout << "Vertex\tDistance from Source (" << src << ")\n";
+        for (int i = 1; i <= n; i++) {
+            cout << i << "\t\t" << (dist[i] == INT_MAX ? "INF" : to_string(dist[i])) << endl;
+        }
+    } else {
+        cout << "Negative weight cycle detected." << endl;
+    }
 }
 
 int main() {
-int V, E;
-cout << "Enter number of vertices: ";
-cin >> V;
-cout << "Enter number of edges: ";
-cin >> E;
+    // Input for number of vertices and edges
+    cout << "Number of vertices (n): ";
+    cin >> n;
+    cout << "Number of edges (m): ";
+    cin >> m;
+    cout << "Source vertex: ";
+    cin >> src;
 
-struct Graph* graph = new Graph;
-graph->edge = new Edge[E];
+    // Input edges
+    cout << "Enter edges (u, v, weight):\n";
+    for (int i = 0; i < m; i++) {
+        cin >> edges[i][0] >> edges[i][1] >> edges[i][2];
+    }
 
-// Read edge data
-readEdges(graph, E);
+    // Call the Bellman-Ford algorithm
+    bellmanFord();
 
-int src;
-cout << "Enter the source vertex: ";
-cin >> src;
-
-// Call Bellman-Ford algorithm
-BellmanFord(graph, src, V, E);
-
-// Clean up memory
-delete[] graph->edge;
-delete graph;
-
-return 0;
+    return 0;
 }
-
